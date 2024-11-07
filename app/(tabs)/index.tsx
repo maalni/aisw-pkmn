@@ -1,70 +1,119 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { FlatList, ScrollView, StyleSheet } from "react-native";
+import { HelloWave } from "@/components/HelloWave";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { NavigationCard } from "@/components/NavigationCard";
+import { router } from "expo-router";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { PkmnCard } from "@/components/PkmnCard";
+import React from "react";
+import { useScrollToTop } from "@react-navigation/native";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+interface pkmncard {
+  id: string;
+  name: string;
+  set: string;
+  number: number;
+}
 
 export default function HomeScreen() {
+  const backgroundColor = useThemeColor({}, "background");
+  const ref = React.useRef(null);
+
+  useScrollToTop(ref);
+
+  const navigateToScanner = () => {
+    router.navigate("/scan");
+  };
+
+  const navigateToCollection = () => {
+    router.navigate("/collection");
+  };
+
+  const renderCollectionPreview = ({ item }: { item: pkmncard }) => (
+    <PkmnCard
+      key={item.id}
+      name={item.name}
+      set={item.set}
+      number={item.number}
+    />
+  );
+
+  const testCardData: pkmncard[] = [
+    { id: "1", name: "a", set: "xy1", number: 1 },
+    { id: "2", name: "b", set: "xy1", number: 2 },
+    { id: "3", name: "c", set: "xy1", number: 3 },
+    { id: "4", name: "d", set: "xy1", number: 4 },
+    { id: "5", name: "e", set: "xy1", number: 5 },
+    { id: "6", name: "f", set: "xy1", number: 6 },
+    { id: "7", name: "g", set: "xy1", number: 7 },
+    { id: "8", name: "h", set: "xy1", number: 8 },
+  ];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView
+      style={[{ backgroundColor: backgroundColor }, StyleSheet.absoluteFill]}
+    >
+      <ScrollView
+        ref={ref}
+        contentContainerStyle={[
+          {
+            padding: 20,
+            paddingTop: 50,
+            gap: 40,
+            minHeight: "100%",
+          },
+        ]}
+      >
+        <ThemedView style={styles.titleContainer}>
+          <ThemedText type="title">
+            Welcome{" "}
+            <ThemedText
+              type="title"
+              style={{
+                textDecorationLine: "underline",
+              }}
+            >
+              user
+            </ThemedText>
+            !
+          </ThemedText>
+          <HelloWave />
+        </ThemedView>
+        <NavigationCard
+          text={"Scan new cards"}
+          icon={"camera"}
+          onPress={navigateToScanner}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+        <ThemedView style={{ gap: 20 }}>
+          <ThemedText type={"subtitle"}>Your collection:</ThemedText>
+          <FlatList
+            contentContainerStyle={{ display: "flex", gap: 20 }}
+            data={testCardData}
+            renderItem={renderCollectionPreview}
+            keyExtractor={(item) => item.id}
+            horizontal={true}
+          />
+          <NavigationCard
+            text={"View your collection"}
+            onPress={navigateToCollection}
+          />
+        </ThemedView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   stepContainer: {
     gap: 8,
     marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
   },
 });
