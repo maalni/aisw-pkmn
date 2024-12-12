@@ -28,14 +28,14 @@ export function NavigationCard({
           backgroundColor: tintColor,
           justifyContent: "center",
           alignItems: "flex-start",
-          padding: 20,
+          padding: 15,
         },
         style,
       ]}
       onPress={onPress}
     >
       {icon !== undefined && (
-        <Ionicons name={icon} size={75} style={{ color: "white" }} />
+        <Ionicons name={icon} size={80} style={{ color: "white" }} />
       )}
       <View
         style={{

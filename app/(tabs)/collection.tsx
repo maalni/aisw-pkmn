@@ -2,47 +2,62 @@ import { ScrollView, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NavigationCard } from "@/components/NavigationCard";
 import { router } from "expo-router";
 import { PkmnCard } from "@/components/PkmnCard";
 import { useScrollToTop } from "@react-navigation/native";
-
-interface pkmncard {
-  id: string;
-  name: string;
-  set: string;
-  number: number;
-}
+import { Collection, PkmntcgApiCardWithCount } from "@/types/PkmntcgApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from "@react-navigation/core";
+import { CardModal } from "@/components/modals/CardModal";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 
 export default function CollectionScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const ref = React.useRef(null);
+  const isFocused = useIsFocused();
+  const cardModal = useRef<BottomSheetModal>(null);
+
+  const [selectedCard, setSelectedCard] = useState<
+    PkmntcgApiCardWithCount | undefined
+  >(undefined);
 
   useScrollToTop(ref);
 
-  const testCardData: pkmncard[] = [
-    { id: "1", name: "a", set: "xy1", number: 1 },
-    { id: "2", name: "b", set: "xy1", number: 2 },
-    { id: "3", name: "c", set: "xy1", number: 3 },
-    { id: "4", name: "d", set: "xy1", number: 4 },
-    { id: "5", name: "e", set: "xy1", number: 5 },
-    { id: "6", name: "f", set: "xy1", number: 6 },
-    { id: "7", name: "g", set: "xy1", number: 7 },
-    { id: "8", name: "h", set: "xy1", number: 8 },
-  ];
+  const [collection, setCollection] = useState<Collection>({});
 
-  const renderPkmnCard = (item: pkmncard) => (
+  useEffect(() => {
+    getCollection();
+  }, [isFocused]);
+
+  const getCollection = () => {
+    try {
+      AsyncStorage.getItem("collection").then((item) => {
+        setCollection(item !== null ? JSON.parse(item) : {});
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const renderPkmnCard = (item: PkmntcgApiCardWithCount, index: number) => (
     <PkmnCard
-      key={item.id}
+      key={item.id + index}
       name={item.name}
-      set={item.set}
+      set={item.set.id}
       number={item.number}
+      onPress={() => openCardView(item)}
     />
   );
+
+  const openCardView = (card: PkmntcgApiCardWithCount) => {
+    setSelectedCard(card);
+    cardModal.current?.present();
+  };
 
   const navigateToScanner = () => {
     router.navigate("/scan");
@@ -64,21 +79,21 @@ export default function CollectionScreen() {
         ]}
       >
         <ThemedView style={styles.titleContainer}>
-          <Ionicons name={"albums"} size={32} color={textColor} />
           <ThemedText type="title">Your Collection</ThemedText>
         </ThemedView>
-        {testCardData.length > 0 ? (
+        {Object.keys(collection).length > 0 ? (
           <ThemedView
             style={{
               display: "flex",
               flexDirection: "row",
               flexWrap: "wrap",
-              justifyContent: "center",
+              justifyContent: "space-evenly",
               gap: 20,
             }}
           >
-            {testCardData.map((item) => {
-              return renderPkmnCard(item);
+            {Object.keys(collection).map((key, index) => {
+              const item = collection[key];
+              return renderPkmnCard(item, index);
             })}
           </ThemedView>
         ) : (
@@ -104,6 +119,11 @@ export default function CollectionScreen() {
           </ThemedView>
         )}
       </ScrollView>
+      <CardModal
+        ref={cardModal}
+        pkmnCard={selectedCard}
+        onDismiss={getCollection}
+      />
     </SafeAreaView>
   );
 }

@@ -15,7 +15,7 @@ export function Card({
       <View
         style={[
           {
-            borderRadius: 16,
+            borderRadius: 8,
             display: "flex",
             overflow: "hidden",
           },

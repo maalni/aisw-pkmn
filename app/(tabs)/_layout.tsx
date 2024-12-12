@@ -52,7 +52,11 @@ export default function TabLayout() {
           borderRadius: 16,
         }}
       >
-        <Ionicons name={icon} color={textColor} size={24} />
+        <Ionicons
+          name={icon}
+          color={props.focused ? "white" : textColor}
+          size={24}
+        />
       </View>
     );
   };
@@ -104,6 +108,13 @@ export default function TabLayout() {
         options={{
           title: "Scan",
           tabBarIcon: (props) => renderTabBarIcon(props, "camera"),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: (props) => renderTabBarIcon(props, "settings"),
         }}
       />
     </Tabs>

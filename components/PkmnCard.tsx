@@ -6,7 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 type CardProps = ViewProps & {
   name: string;
   set: string;
-  number: number;
+  number: string;
   onPress?: () => void;
 };
 
@@ -21,16 +21,20 @@ export function PkmnCard({
     <Card
       onPress={onPress}
       style={[
-        { flex: 1, width: 150, height: 210, backgroundColor: "blue" },
+        {
+          width: 150,
+          aspectRatio: 640 / 892,
+          backgroundColor: "blue",
+        },
         style,
       ]}
     >
       <ImageBackground
         style={{ flex: 1 }}
+        imageStyle={{ height: null, width: null, aspectRatio: 640 / 892 }}
         source={{
           uri: "https://images.pokemontcg.io/" + set + "/" + number + ".png",
         }}
-        resizeMode={"cover"}
       >
         <View
           style={{
@@ -41,8 +45,12 @@ export function PkmnCard({
             padding: 8,
           }}
         >
-          <ThemedText type={"defaultSemiBold"}>{name}</ThemedText>
-          <ThemedText type={"default"}>{set + number}</ThemedText>
+          <ThemedText type={"defaultSemiBold"} lightColor={"#FFFFFF"}>
+            {name}
+          </ThemedText>
+          <ThemedText type={"default"} lightColor={"#FFFFFF"}>
+            {number}
+          </ThemedText>
         </View>
       </ImageBackground>
     </Card>

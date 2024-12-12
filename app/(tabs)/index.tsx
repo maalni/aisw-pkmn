@@ -7,21 +7,31 @@ import { router } from "expo-router";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PkmnCard } from "@/components/PkmnCard";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useScrollToTop } from "@react-navigation/native";
-
-interface pkmncard {
-  id: string;
-  name: string;
-  set: string;
-  number: number;
-}
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Collection } from "@/types/PkmntcgApi";
+import { useIsFocused } from "@react-navigation/core";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function HomeScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const ref = React.useRef(null);
+  const isFocused = useIsFocused();
 
   useScrollToTop(ref);
+
+  const [collection, setCollection] = useState<Collection>({});
+
+  useEffect(() => {
+    try {
+      AsyncStorage.getItem("collection").then((item) => {
+        setCollection(item !== null ? JSON.parse(item) : {});
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }, [isFocused]);
 
   const navigateToScanner = () => {
     router.navigate("/scan");
@@ -31,25 +41,14 @@ export default function HomeScreen() {
     router.navigate("/collection");
   };
 
-  const renderCollectionPreview = ({ item }: { item: pkmncard }) => (
+  const renderCollectionPreview = ({ item }: { item: string }) => (
     <PkmnCard
-      key={item.id}
-      name={item.name}
-      set={item.set}
-      number={item.number}
+      key={collection[item].id}
+      name={collection[item].name}
+      set={collection[item].set.id}
+      number={collection[item].number}
     />
   );
-
-  const testCardData: pkmncard[] = [
-    { id: "1", name: "a", set: "xy1", number: 1 },
-    { id: "2", name: "b", set: "xy1", number: 2 },
-    { id: "3", name: "c", set: "xy1", number: 3 },
-    { id: "4", name: "d", set: "xy1", number: 4 },
-    { id: "5", name: "e", set: "xy1", number: 5 },
-    { id: "6", name: "f", set: "xy1", number: 6 },
-    { id: "7", name: "g", set: "xy1", number: 7 },
-    { id: "8", name: "h", set: "xy1", number: 8 },
-  ];
 
   return (
     <SafeAreaView
@@ -81,26 +80,42 @@ export default function HomeScreen() {
           </ThemedText>
           <HelloWave />
         </ThemedView>
+
         <NavigationCard
           text={"Scan new cards"}
           icon={"camera"}
           onPress={navigateToScanner}
         />
 
-        <ThemedView style={{ gap: 20 }}>
-          <ThemedText type={"subtitle"}>Your collection:</ThemedText>
-          <FlatList
-            contentContainerStyle={{ display: "flex", gap: 20 }}
-            data={testCardData}
-            renderItem={renderCollectionPreview}
-            keyExtractor={(item) => item.id}
-            horizontal={true}
-          />
-          <NavigationCard
-            text={"View your collection"}
-            onPress={navigateToCollection}
-          />
-        </ThemedView>
+        {Object.keys(collection).length > 0 ? (
+          <ThemedView style={{ gap: 20 }}>
+            <ThemedText type={"subtitle"}>Your collection:</ThemedText>
+            <FlatList
+              contentContainerStyle={{ display: "flex", gap: 20 }}
+              data={Object.keys(collection).slice(0, 10)}
+              renderItem={renderCollectionPreview}
+              keyExtractor={(item, index) => collection[item].id + index}
+              horizontal={true}
+            />
+            <NavigationCard
+              text={"View your collection"}
+              onPress={navigateToCollection}
+            />
+          </ThemedView>
+        ) : (
+          <ThemedView
+            style={{
+              flex: 1,
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 20,
+            }}
+          >
+            <Ionicons name={"alert-circle-outline"} size={50} color={"white"} />
+            <ThemedText type={"subtitle"}>Your collection is empty</ThemedText>
+          </ThemedView>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
